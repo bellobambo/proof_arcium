@@ -200,7 +200,7 @@ pub mod proof_arcium {
         exam_access.student_content_pubkey = student_content_pubkey;
         exam_access.content_key_nonce = 0;
         exam_access.encrypted_content_key = Vec::new();
-        exam_access.granted = false;
+        exam_access.granted = true;
         exam_access.bump = ctx.bumps.exam_access;
 
         emit!(ExamAccessRequested {

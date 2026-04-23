@@ -6,7 +6,7 @@ The public Anchor program keeps the original course, enrollment, exam-session, s
 
 - `Exam.content_ciphertexts` stores encrypted question/options payload chunks.
 - `Exam.answer_key_ciphertexts` stores the MXE-encrypted answer key.
-- `ExamAccess` stores a per-student encrypted content key for enrolled students.
+- `ExamAccess` records enrolled-student exam access and can store a per-student encrypted content key.
 - `take_exam` stores the student's submitted answers and queues the Arcium `grade_exam` computation.
 - `grade_exam_callback` writes the revealed score and correctness mask to `ExamSession`, so student scores remain publicly viewable and verifiable.
 
@@ -18,12 +18,11 @@ The confidential circuit lives in `encrypted-ixs/src/lib.rs`. It compares public
 Student exam access flow:
 
 1. Student enrolls in a course.
-2. Student calls `request_exam_access` with their exam-content encryption public key.
-3. Tutor or backend verifies the request account and calls `grant_exam_access` with the exam-content key encrypted to that student.
-4. Student frontend fetches `Exam.content_ciphertexts` plus their `ExamAccess.encrypted_content_key`, decrypts the content key locally, then decrypts the questions/options.
-5. Student submits answers with `take_exam`; the Arcium callback writes public scores.
+2. Student calls `request_exam_access` with their exam-content encryption public key. The program verifies enrollment and immediately marks access as granted.
+3. Student frontend fetches `Exam.content_ciphertexts` plus whatever key-delivery material your app uses, then decrypts the questions/options locally.
+4. Student submits answers with `take_exam`; the Arcium callback writes public scores.
 
-The answer key is never revealed to the student. The exam content can be read only by students who have a granted `ExamAccess` account and can decrypt the per-student content key.
+The answer key is never revealed to the student. The exam content can be read only by students who are enrolled, have an `ExamAccess` account, and can decrypt the app-provided exam content key.
 
 Build with:
 
