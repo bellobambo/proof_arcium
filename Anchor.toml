@@ -1,0 +1,21 @@
+[toolchain]
+anchor_version = "0.32.1"
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+
+
+[programs.devnet]
+proof_arcium = "Ch5KUtPipgBTnjCVX1du7keV7pd6cdxJDLovRErFuSh"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"
+
+[hooks]
