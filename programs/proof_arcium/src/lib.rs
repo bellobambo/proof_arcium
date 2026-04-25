@@ -134,8 +134,7 @@ pub mod proof_arcium {
             ErrorCode::QuestionCountOutOfRange
         );
         require!(
-            !encrypted_exam.content_ciphertexts.is_empty()
-                && encrypted_exam.content_ciphertexts.len() <= MAX_EXAM_CONTENT_CIPHERTEXTS,
+            encrypted_exam.content_ciphertexts.len() <= MAX_EXAM_CONTENT_CIPHERTEXTS,
             ErrorCode::EncryptedExamContentOutOfRange
         );
         require_eq!(

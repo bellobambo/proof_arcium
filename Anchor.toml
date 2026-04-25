@@ -12,7 +12,7 @@ skip-lint = false
 proof_arcium = "Ch5KUtPipgBTnjCVX1du7keV7pd6cdxJDLovRErFuSh"
 
 [provider]
-cluster = "devnet"
+cluster = "https://api.devnet.solana.com"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
