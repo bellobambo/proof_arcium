@@ -20,7 +20,7 @@ describe("ProofArcium IDL", () => {
       "grant_exam_access",
       "take_exam",
       "init_grade_exam_comp_def",
-      "grade_exam_callback",
+      "grade_exam_v4_callback",
     ]);
   });
 

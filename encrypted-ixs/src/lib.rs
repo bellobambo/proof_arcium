@@ -19,8 +19,8 @@ mod circuits {
     }
 
     #[instruction]
-    pub fn grade_exam(
-        answer_key_ctxt: Enc<Mxe, AnswerKey>,
+    pub fn grade_exam_v4(
+        answer_key_ctxt: Enc<Shared, AnswerKey>,
         submission: StudentAnswers,
     ) -> (u16, u32) {
         let answer_key = answer_key_ctxt.to_arcis();

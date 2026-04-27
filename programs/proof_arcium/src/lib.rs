@@ -4,7 +4,7 @@ use arcium_client::idl::arcium::types::CallbackAccount;
 
 declare_id!("Ch5KUtPipgBTnjCVX1du7keV7pd6cdxJDLovRErFuSh");
 
-const COMP_DEF_OFFSET_GRADE_EXAM: u32 = comp_def_offset("grade_exam");
+const COMP_DEF_OFFSET_GRADE_EXAM: u32 = comp_def_offset("grade_exam_v4");
 
 pub const GLOBAL_CONFIG_SEED: &[u8] = b"global-config";
 pub const USER_SEED: &[u8] = b"user";
@@ -267,6 +267,7 @@ pub mod proof_arcium {
         Ok(())
     }
 
+    #[check_args]
     pub fn take_exam(
         ctx: Context<TakeExam>,
         computation_offset: u64,
@@ -330,7 +331,9 @@ pub mod proof_arcium {
         }
 
         ctx.accounts.sign_pda_account.bump = ctx.bumps.sign_pda_account;
+        #[args("grade_exam_v4")]
         let args = ArgBuilder::new()
+            .x25519_pubkey(ctx.accounts.exam.content_pubkey)
             .plaintext_u128(ctx.accounts.exam.answer_key_nonce)
             .encrypted_u8(answer_key[0])
             .encrypted_u8(answer_key[1])
@@ -371,7 +374,7 @@ pub mod proof_arcium {
             ctx.accounts,
             computation_offset,
             args,
-            vec![GradeExamCallback::callback_ix(
+            vec![GradeExamV4Callback::callback_ix(
                 computation_offset,
                 &ctx.accounts.mxe_account,
                 &[CallbackAccount {
@@ -392,16 +395,16 @@ pub mod proof_arcium {
         Ok(())
     }
 
-    #[arcium_callback(encrypted_ix = "grade_exam")]
-    pub fn grade_exam_callback(
-        ctx: Context<GradeExamCallback>,
-        output: SignedComputationOutputs<GradeExamOutput>,
+    #[arcium_callback(encrypted_ix = "grade_exam_v4")]
+    pub fn grade_exam_v4_callback(
+        ctx: Context<GradeExamV4Callback>,
+        output: SignedComputationOutputs<GradeExamV4Output>,
     ) -> Result<()> {
         let result = match output.verify_output(
             &ctx.accounts.cluster_account,
             &ctx.accounts.computation_account,
         ) {
-            Ok(GradeExamOutput { field_0 }) => field_0,
+            Ok(GradeExamV4Output { field_0 }) => field_0,
             Err(_) => return Err(ErrorCode::AbortedComputation.into()),
         };
 
@@ -630,7 +633,7 @@ pub struct GrantExamAccess<'info> {
     pub exam_access: Box<Account<'info, ExamAccess>>,
 }
 
-#[queue_computation_accounts("grade_exam", student)]
+#[queue_computation_accounts("grade_exam_v4", student)]
 #[derive(Accounts)]
 #[instruction(computation_offset: u64)]
 pub struct TakeExam<'info> {
@@ -720,9 +723,9 @@ pub struct TakeExam<'info> {
     pub arcium_program: Program<'info, Arcium>,
 }
 
-#[callback_accounts("grade_exam")]
+#[callback_accounts("grade_exam_v4")]
 #[derive(Accounts)]
-pub struct GradeExamCallback<'info> {
+pub struct GradeExamV4Callback<'info> {
     pub arcium_program: Program<'info, Arcium>,
     #[account(address = derive_comp_def_pda!(COMP_DEF_OFFSET_GRADE_EXAM))]
     pub comp_def_account: Account<'info, ComputationDefinitionAccount>,
@@ -743,7 +746,7 @@ pub struct GradeExamCallback<'info> {
     pub session: Box<Account<'info, ExamSession>>,
 }
 
-#[init_computation_definition_accounts("grade_exam", payer)]
+#[init_computation_definition_accounts("grade_exam_v4", payer)]
 #[derive(Accounts)]
 pub struct InitGradeExamCompDef<'info> {
     #[account(mut)]
