@@ -139,7 +139,7 @@ pub mod proof_arcium {
         );
         require_eq!(
             encrypted_exam.answer_key_ciphertexts.len(),
-            question_count as usize,
+            MAX_QUESTIONS_PER_EXAM,
             ErrorCode::InvalidAnswerKeyLength
         );
 
@@ -294,8 +294,15 @@ pub mod proof_arcium {
         );
 
         let mut answer_key = [[0u8; 32]; MAX_QUESTIONS_PER_EXAM];
-        for (idx, ciphertext) in ctx.accounts.exam.answer_key_ciphertexts.iter().enumerate() {
-            answer_key[idx] = *ciphertext;
+        let fallback_ciphertext = ctx.accounts.exam.answer_key_ciphertexts[0];
+        for idx in 0..MAX_QUESTIONS_PER_EXAM {
+            answer_key[idx] = ctx
+                .accounts
+                .exam
+                .answer_key_ciphertexts
+                .get(idx)
+                .copied()
+                .unwrap_or(fallback_ciphertext);
         }
 
         let mut submission = [0u8; MAX_QUESTIONS_PER_EXAM];
@@ -412,6 +419,14 @@ pub mod proof_arcium {
         session.correctness = correctness;
         session.completed = true;
         session.completed_at = Clock::get()?.unix_timestamp;
+
+        msg!(
+            "Exam completed: exam_id={}, student={}, score={}/{}",
+            session.exam_id,
+            session.student,
+            score,
+            question_count
+        );
 
         emit!(ExamCompleted {
             exam_id: session.exam_id,
