@@ -1,6 +1,6 @@
 # Proof Arcium
 
-Proof Arcium is a Solana devnet program for private exam assessment. It lets tutors create courses and exams, lets students enroll and request exam access, and grades submitted answers without exposing the tutor's answer key.
+Proof Arcium is a Solana devnet program for private exam assessment. It lets tutors create courses and exams, lets students enroll and request exam access, and grades submitted answers without exposing the tutor's answer.
 
 ## Program ID
 
