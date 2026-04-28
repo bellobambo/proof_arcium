@@ -1,36 +1,57 @@
 # Proof Arcium
 
-This is the Arcium-backed version of the proof assessment program.
+Proof Arcium is a Solana devnet program for private exam assessment. It lets tutors create courses and exams, lets students enroll and request exam access, and grades submitted answers without exposing the tutor's answer key.
 
-The public Anchor program keeps the original course, enrollment, exam-session, score, and assessment verification flow. Tutor-uploaded exam content is the private surface:
+## Program ID
 
-- `Exam.content_ciphertexts` stores encrypted question/options payload chunks.
-- `Exam.answer_key_ciphertexts` stores the MXE-encrypted answer key.
-- `ExamAccess` records enrolled-student exam access and can store a per-student encrypted content key.
-- `take_exam` stores the student's submitted answers and queues the Arcium `grade_exam` computation.
-- `grade_exam_callback` writes the revealed score and correctness mask to `ExamSession`, so student scores remain publicly viewable and verifiable.
+Solana devnet program id:
 
-The confidential circuit lives in `encrypted-ixs/src/lib.rs`. It compares public student answers against the encrypted answer key inside Arcium MPC and reveals only:
+```text
+Ch5KUtPipgBTnjCVX1du7keV7pd6cdxJDLovRErFuSh
+```
 
-- `score: u16`
-- `correctness_mask: u32`
+## What The Program Is For
 
-Student exam access flow:
+This program is built for an education or assessment workflow where exam data should be verifiable on-chain, but sensitive grading data should stay private. Tutors can register, create courses, upload encrypted exam content, and store an encrypted answer key. Students can register, enroll in courses, request access to an exam, and submit answers.
 
-1. Student enrolls in a course.
-2. Student calls `request_exam_access` with their exam-content encryption public key. The program verifies enrollment and immediately marks access as granted.
-3. Student frontend fetches `Exam.content_ciphertexts` plus whatever key-delivery material your app uses, then decrypts the questions/options locally.
-4. Student submits answers with `take_exam`; the Arcium callback writes public scores.
+After a student submits an exam, the program records the exam session and later stores the final score and correctness result once the private computation is complete.
 
-The answer key is never revealed to the student. The exam content can be read only by students who are enrolled, have an `ExamAccess` account, and can decrypt the app-provided exam content key.
+## How I Used Arcium
 
-Build with:
+I used Arcium to add confidential computation to the grading step. The answer key is stored as encrypted data, and the Arcium encrypted instruction compares the student's answers against that encrypted answer key inside Arcium MPC.
+
+The confidential circuit is in:
+
+```text
+encrypted-ixs/src/lib.rs
+```
+
+It reveals only:
+
+- the student's score
+- a correctness mask showing which answers were correct
+
+This means the program can publish useful grading results on Solana while keeping the answer key private.
+
+## Main Flow
+
+1. A user registers as a tutor or student.
+2. A tutor creates a course.
+3. A student enrolls in the course.
+4. A tutor creates an exam with encrypted content and an encrypted answer key.
+5. A student requests access and submits answers.
+6. Arcium grades the answers privately.
+7. The callback writes the final score to the student's exam session.
+
+## Build And Test
+
+Build the Arcium program:
 
 ```bash
 NO_DNA=1 arcium build
 ```
 
-Rust tests:
+Run Rust tests:
 
 ```bash
 NO_DNA=1 cargo test -p proof_arcium
